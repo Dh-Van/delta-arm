@@ -107,5 +107,3 @@ def tau_u(q, tolerance=1e-5, max_iterations=200):
         guess += delta_guess
 
     return guess[:3]
-#poop
-  
