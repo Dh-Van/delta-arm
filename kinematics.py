@@ -1,5 +1,4 @@
 import sympy as sp
-import numpy as np
 
 base_radius, proximal_length, distal_length, end_effector_width = 2, 5, 9, 2
 
@@ -58,37 +57,33 @@ def calculate_forward_kinematics(proximal_angles, initial_guess, tolerance=1e-5,
         constraint_jacobian = constraint_jacobian.subs(dict(zip(distal_angle_symbols, numerical_guess))).evalf()
 
         if constraint_values.norm() < tolerance:
-            print("yay")
             break
 
         delta_angle = -constraint_jacobian.inv() * constraint_values
         numerical_guess += delta_angle
 
-    # Adjust the angles where they are measured from pi
-    numerical_guess[0] = (sp.pi - numerical_guess[0]).evalf()  # q12
-    numerical_guess[2] = (sp.pi - numerical_guess[2]).evalf()  # q22
-    numerical_guess[4] = (sp.pi - numerical_guess[4]).evalf()  # q32
+    numerical_guess[0] = (sp.pi - numerical_guess[0]).evalf()
+    numerical_guess[2] = (sp.pi - numerical_guess[2]).evalf()
+    numerical_guess[4] = (sp.pi - numerical_guess[4]).evalf()
 
     return numerical_guess
 
 
 def calculate_inverse_kinematics_single(end_effector_position):
-    q11, q12, q13 = sp.symbols("q11, q12, q13")
-    # Define the equations with q12 measured from the horizontal
-    z1 = distal_length * sp.sin(sp.pi - q12) * sp.sin(q13)
-    z2 = base_radius - end_effector_width + proximal_length * sp.cos(q11) + distal_length * sp.cos(sp.pi - q12)
-    z3 = proximal_length * sp.sin(q11) + distal_length * sp.sin(sp.pi - q12) * sp.cos(q13)
+    servo_angle, link_elevation, link_tilt = sp.symbols("servo_angle link_elevation link_tilt")
+    
+    z1 = distal_length * sp.sin(sp.pi - link_elevation) * sp.sin(link_tilt)
+    z2 = base_radius - end_effector_width + proximal_length * sp.cos(servo_angle) + distal_length * sp.cos(sp.pi - link_elevation)
+    z3 = proximal_length * sp.sin(servo_angle) + distal_length * sp.sin(sp.pi - link_elevation) * sp.cos(link_tilt)
 
-    # Set up the system of equations
     equations = [
         sp.Eq(z1, end_effector_position[0]),
         sp.Eq(z2, end_effector_position[1]),
         sp.Eq(z3, end_effector_position[2])
     ]
 
-    # Solve the system of equations using numerical solver
-    initial_guess = (sp.rad(10).evalf(), sp.rad(10).evalf(), sp.rad(10).evalf())
-    solutions = sp.nsolve(equations, (q11, q12, q13), initial_guess, verify=False)
+    initial_guess = (0.1, 0.1, 0.1)
+    solutions = sp.nsolve(equations, (servo_angle, link_elevation, link_tilt), initial_guess, verify=False)
 
     return solutions
 
