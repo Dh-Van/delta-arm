@@ -1,7 +1,7 @@
 import numpy as np
 import sympy as sp
 
-ee_pos = [1e-5, 1e-5, 11.35]
+ee_pos = [1e-5, 1, 11.35]
 
 l0, l1, l2, l3 = 2, 5, 9, 2
 q11, q12, q13 = sp.symbols("q11, q12, q13")
